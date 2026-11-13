@@ -1,0 +1,9 @@
+{
+  "id": "solarium",
+  "title": "Your natal chart",
+  "brands": [{ "name": "Solarium", "logo": "" }],
+  "hosts": [
+    { "name": "Dr. Katelyn Mudry", "bookingUrl": "TODO", "blurb": "TODO" }
+  ],
+  "colors": { "primary": "#d4a843", "accent": "#d4a843", "background": "#141830" }
+}

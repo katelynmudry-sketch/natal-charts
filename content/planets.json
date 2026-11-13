@@ -1,0 +1,12 @@
+[
+  { "id": "sun", "title": "Sun", "symbol": "☉", "color": "#FFD700", "rules": ["Leo"], "text": "Core self, vitality, identity, ego, creative power", "source": "Solarium chart app" },
+  { "id": "moon", "title": "Moon", "symbol": "☽", "color": "#C0C0C0", "rules": ["Cancer"], "text": "Emotions, intuition, subconscious, needs, comfort", "source": "Solarium chart app" },
+  { "id": "mercury", "title": "Mercury", "symbol": "☿", "color": "#FF8C00", "rules": ["Gemini", "Virgo"], "text": "Communication, thinking, learning, perception", "source": "Solarium chart app" },
+  { "id": "venus", "title": "Venus", "symbol": "♀", "color": "#9CAF88", "rules": ["Taurus", "Libra"], "text": "Love, beauty, values, pleasure, relationships", "source": "Solarium chart app" },
+  { "id": "mars", "title": "Mars", "symbol": "♂", "color": "#DC143C", "rules": ["Aries", "Scorpio"], "text": "Action, desire, anger, drive, assertion", "source": "Solarium chart app" },
+  { "id": "jupiter", "title": "Jupiter", "symbol": "♃", "color": "#4169E1", "rules": ["Sagittarius", "Pisces"], "text": "Expansion, wisdom, growth, luck, abundance", "source": "Solarium chart app" },
+  { "id": "saturn", "title": "Saturn", "symbol": "♄", "color": "#483D8B", "rules": ["Capricorn", "Aquarius"], "text": "Structure, discipline, responsibility, limits, mastery", "source": "Solarium chart app" },
+  { "id": "uranus", "title": "Uranus", "symbol": "♅", "color": "#87CEEB", "rules": [], "text": "Innovation, rebellion, sudden change, awakening", "source": "Solarium chart app" },
+  { "id": "neptune", "title": "Neptune", "symbol": "♆", "color": "#7FFFD4", "rules": [], "text": "Spirituality, dreams, illusion, transcendence", "source": "Solarium chart app" },
+  { "id": "pluto", "title": "Pluto", "symbol": "♇", "color": "#1a1a1a", "rules": [], "text": "Transformation, power, death/rebirth, the shadow", "source": "Solarium chart app" }
+]

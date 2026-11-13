@@ -1,0 +1,13 @@
+{
+  "id": "class-2026-fall",
+  "title": "Intro to your natal chart",
+  "brands": [
+    { "name": "Solarium", "logo": "" },
+    { "name": "CO-HOST BRAND", "logo": "" }
+  ],
+  "hosts": [
+    { "name": "Dr. Katelyn Mudry", "bookingUrl": "TODO", "blurb": "TODO" },
+    { "name": "CO-HOST NAME", "bookingUrl": "TODO", "blurb": "TODO" }
+  ],
+  "colors": { "primary": "#d4a843", "accent": "#d4a843", "background": "#141830" }
+}

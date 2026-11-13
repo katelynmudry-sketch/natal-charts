@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solarium · Natal Chart</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      overflow: auto;
+      font-family: 'Crimson Pro', 'Cormorant Garamond', serif;
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.4; }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 0.4; }
+    }
+    
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(232, 215, 195, 0.1);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(232, 215, 195, 0.3);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(232, 215, 195, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const ZODIAC_SIGNS = [
+      'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+      'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+    ];
+
+    const ZODIAC_KEYWORDS = [
+      'The Warrior', 'The Builder', 'The Messenger', 'The Nurturer',
+      'The Performer', 'The Analyst', 'The Diplomat', 'The Transformer',
+      'The Seeker', 'The Achiever', 'The Innovator', 'The Mystic'
+    ];
+
+    const PLANET_COLORS = {
+      sun: '#FFD700',
+      moon: '#C0C0C0',
+      mercury: '#FF8C00',
+      venus: '#9CAF88',
+      mars: '#DC143C',
+      jupiter: '#4169E1',
+      saturn: '#483D8B',
+      uranus: '#87CEEB',
+      neptune: '#7FFFD4',
+      pluto: '#1a1a1a'
+    };
+
+    const PLANETS = [
+      { id: 'sun', symbol: '☉', name: 'Sun', meaning: 'Core self, vitality, identity, ego, creative power', color: PLANET_COLORS.sun, rules: ['Leo'] },
+      { id: 'moon', symbol: '☽', name: 'Moon', meaning: 'Emotions, intuition, subconscious, needs, comfort', color: PLANET_COLORS.moon, rules: ['Cancer'] },
+      { id: 'mercury', symbol: '☿', name: 'Mercury', meaning: 'Communication, thinking, learning, perception', color: PLANET_COLORS.mercury, rules: ['Gemini', 'Virgo'] },
+      { id: 'venus', symbol: '♀', name: 'Venus', meaning: 'Love, beauty, values, pleasure, relationships', color: PLANET_COLORS.venus, rules: ['Taurus', 'Libra'] },
+      { id: 'mars', symbol: '♂', name: 'Mars', meaning: 'Action, desire, anger, drive, assertion', color: PLANET_COLORS.mars, rules: ['Aries', 'Scorpio'] },
+      { id: 'jupiter', symbol: '♃', name: 'Jupiter', meaning: 'Expansion, wisdom, growth, luck, abundance', color: PLANET_COLORS.jupiter, rules: ['Sagittarius', 'Pisces'] },
+      { id: 'saturn', symbol: '♄', name: 'Saturn', meaning: 'Structure, discipline, responsibility, limits, mastery', color: PLANET_COLORS.saturn, rules: ['Capricorn', 'Aquarius'] },
+      { id: 'uranus', symbol: '♅', name: 'Uranus', meaning: 'Innovation, rebellion, sudden change, awakening', color: PLANET_COLORS.uranus, rules: [] },
+      { id: 'neptune', symbol: '♆', name: 'Neptune', meaning: 'Spirituality, dreams, illusion, transcendence', color: PLANET_COLORS.neptune, rules: [] },
+      { id: 'pluto', symbol: '♇', name: 'Pluto', meaning: 'Transformation, power, death/rebirth, the shadow', color: PLANET_COLORS.pluto, rules: [] }
+    ];
+
+    const HOUSE_SIGNIFICATIONS = [
+      'Self, identity, appearance, how you show up in the world',
+      'Values, possessions, resources, self-worth, material security',
+      'Communication, learning, siblings, short trips, daily environment',
+      'Home, family, roots, emotional foundation, private life',
+      'Creativity, romance, children, joy, self-expression, play',
+      'Health, work, daily routines, service, practical skills',
+      'Partnerships, marriage, one-on-one relationships, contracts',
+      'Transformation, shared resources, intimacy, death/rebirth, occult',
+      'Philosophy, higher learning, long journeys, belief systems, meaning',
+      'Career, reputation, public life, authority, life purpose',
+      'Community, friendships, hopes, dreams, collective causes',
+      'Spirituality, the unconscious, hidden enemies, solitude, endings'
+    ];
+
+    const ASPECTS = [
+      { name: 'Conjunction', degrees: 0, orb: 8 },
+      { name: 'Opposition', degrees: 180, orb: 8 },
+      { name: 'Trine', degrees: 120, orb: 8 },
+      { name: 'Square', degrees: 90, orb: 8 },
+      { name: 'Sextile', degrees: 60, orb: 6 },
+      { name: 'Quincunx', degrees: 150, orb: 3, dotted: true }
+    ];
+
+    // Simple icons as SVG components
+    const Settings = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6m0 6v6m-5.196-13.196L9.88 8.88m4.24 4.24l3.076 3.076m0-10.392L14.12 8.88M9.88 14.12l-3.076 3.076"/>
+      </svg>
+    );
+
+    const Eye = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    );
+
+    const EyeOff = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>
+    );
+
+    function AstrologyChart() {
+      const [ascendant, setAscendant] = useState('Aries');
+      const [showAspects, setShowAspects] = useState(false);
+      const [planets, setPlanets] = useState(
+        PLANETS.reduce((acc, planet, index) => ({
+          ...acc,
+          [planet.id]: {
+            house: Math.floor(index * 1.2) % 12,
+            degrees: (index * 37) % 30
+          }
+        }), {})
+      );
+      const [dragging, setDragging] = useState(null);
+      const [zoom, setZoom] = useState(0.85);
+      const chartRef = useRef(null);
+
+      const getHouseSign = (houseIndex) => {
+        const ascIndex = ZODIAC_SIGNS.indexOf(ascendant);
+        return ZODIAC_SIGNS[(ascIndex + houseIndex) % 12];
+      };
+
+      const getPlanetRulerColor = (sign) => {
+        const ruler = PLANETS.find(p => p.rules.includes(sign));
+        return ruler ? ruler.color : '#ffffff';
+      };
+
+      const handleMouseDown = (planetId, e) => {
+        e.preventDefault();
+        setDragging(planetId);
+      };
+
+      const handleMouseMove = (e) => {
+        if (!dragging || !chartRef.current) return;
+
+        const rect = chartRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const x = e.clientX - centerX;
+        const y = e.clientY - centerY;
+        
+        // Calculate angle with ASC on left, houses going counter-clockwise
+        let angleDeg = Math.atan2(y, x) * (180 / Math.PI);
+        // Convert to house position: ASC is at 180° in SVG, counter-clockwise = decreasing angle
+        let houseDegrees = (180 - angleDeg + 360) % 360;
+
+        const house = Math.floor(houseDegrees / 30);
+        const degrees = houseDegrees % 30;
+
+        setPlanets(prev => ({
+          ...prev,
+          [dragging]: { house, degrees }
+        }));
+      };
+
+      const handleMouseUp = () => {
+        setDragging(null);
+      };
+
+      useEffect(() => {
+        if (dragging) {
+          window.addEventListener('mousemove', handleMouseMove);
+          window.addEventListener('mouseup', handleMouseUp);
+          return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+          };
+        }
+      }, [dragging]);
+
+      const calculateAspects = () => {
+        const aspects = [];
+        const planetPositions = Object.entries(planets).map(([id, pos]) => ({
+          id,
+          degrees: pos.house * 30 + pos.degrees
+        }));
+
+        for (let i = 0; i < planetPositions.length; i++) {
+          for (let j = i + 1; j < planetPositions.length; j++) {
+            const p1 = planetPositions[i];
+            const p2 = planetPositions[j];
+            
+            let diff = Math.abs(p1.degrees - p2.degrees);
+            if (diff > 180) diff = 360 - diff;
+
+            for (const aspect of ASPECTS) {
+              if (Math.abs(diff - aspect.degrees) <= aspect.orb) {
+                aspects.push({
+                  planet1: p1.id,
+                  planet2: p2.id,
+                  type: aspect.name,
+                  dotted: aspect.dotted || false
+                });
+              }
+            }
+          }
+        }
+        return aspects;
+      };
+
+      const getPlanetPosition = (house, degrees, radius) => {
+        const totalDegrees = house * 30 + degrees;
+        const angle = (180 - totalDegrees) * (Math.PI / 180);
+        return {
+          x: 400 + Math.cos(angle) * radius,
+          y: 400 + Math.sin(angle) * radius
+        };
+      };
+
+      const aspects = showAspects ? calculateAspects() : [];
+
+      return (
+        <div style={{
+          width: '100vw',
+          height: '100vh',
+          background: 'radial-gradient(circle at 30% 20%, #2d3a6e 0%, #1e2548 40%, #141830 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: '"Crimson Pro", "Cormorant Garamond", serif',
+          color: '#ffffff',
+          overflow: 'auto',
+          position: 'relative',
+          padding: '2rem'
+        }}>
+          {/* Background stars */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(2px 2px at 20% 30%, white, transparent), radial-gradient(2px 2px at 60% 70%, white, transparent), radial-gradient(1px 1px at 50% 50%, white, transparent), radial-gradient(1px 1px at 80% 10%, white, transparent), radial-gradient(2px 2px at 90% 60%, white, transparent), radial-gradient(1px 1px at 33% 80%, white, transparent)',
+            backgroundSize: '200px 200px, 250px 250px, 300px 300px, 180px 180px, 220px 220px, 270px 270px',
+            opacity: 0.25,
+            animation: 'twinkle 20s ease-in-out infinite'
+          }} />
+
+          {/* Main container */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '1.5rem', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            position: 'relative', 
+            zIndex: 1,
+            width: '100%',
+            maxWidth: '1600px',
+            height: '100%'
+          }}>
+            {/* Chart */}
+            <div style={{
+              position: 'relative',
+              flex: '1',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem',
+              overflow: 'auto',
+              minWidth: 0
+            }}>
+              
+              <svg
+                ref={chartRef}
+                viewBox="-200 -200 1200 1200"
+                style={{
+                  width: `${Math.round(zoom * 900)}px`,
+                  minWidth: `${Math.round(zoom * 900)}px`,
+                  height: 'auto',
+                  filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.15))'
+                }}
+              >
+                {/* Outer zodiac ring border */}
+                <circle cx="400" cy="400" r="265" fill="rgba(30, 37, 72, 0.5)" stroke="rgba(212, 168, 67, 0.4)" strokeWidth="2" />
+
+                {/* House divisions */}
+                {Array.from({ length: 12 }).map((_, i) => {
+                  const cuspAngle = (180 - i * 30) * (Math.PI / 180);
+                  const x1 = 400 + Math.cos(cuspAngle) * 175;
+                  const y1 = 400 + Math.sin(cuspAngle) * 175;
+                  const x2 = 400 + Math.cos(cuspAngle) * 265;
+                  const y2 = 400 + Math.sin(cuspAngle) * 265;
+
+                  const sign = getHouseSign(i);
+                  const rulerColor = getPlanetRulerColor(sign);
+                  const midAngle = (180 - (i * 30 + 15)) * (Math.PI / 180);
+
+                  return (
+                    <g key={i}>
+                      <line
+                        x1={x1} y1={y1} x2={x2} y2={y2}
+                        stroke={rulerColor}
+                        strokeWidth={i === 0 ? "3" : "1"}
+                        strokeOpacity={i === 0 ? "0.8" : "0.3"}
+                      />
+
+                      {/* Zodiac sign on outer ring */}
+                      <text
+                        x={400 + Math.cos(midAngle) * 230}
+                        y={400 + Math.sin(midAngle) * 230 - 10}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#ffffff"
+                        fontSize="15"
+                        fontWeight="700"
+                        style={{ textTransform: 'uppercase', letterSpacing: '1px' }}
+                      >
+                        {sign}
+                      </text>
+
+                      {/* Zodiac keyword */}
+                      <text
+                        x={400 + Math.cos(midAngle) * 230}
+                        y={400 + Math.sin(midAngle) * 230 + 11}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#d4a843"
+                        fontSize="12"
+                        fontWeight="500"
+                        style={{ fontStyle: 'italic', opacity: 0.9 }}
+                      >
+                        {ZODIAC_KEYWORDS[ZODIAC_SIGNS.indexOf(sign)]}
+                      </text>
+
+                      {/* House number */}
+                      <text
+                        x={400 + Math.cos(midAngle) * 192}
+                        y={400 + Math.sin(midAngle) * 192}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#d4a843"
+                        fontSize="17"
+                        fontWeight="700"
+                        opacity="0.9"
+                      >
+                        {i + 1}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Inner circle */}
+                <circle cx="400" cy="400" r="175" fill="rgba(20, 24, 48, 0.85)" stroke="rgba(212, 168, 67, 0.4)" strokeWidth="2" />
+
+                {/* Solarium branding — behind aspect lines */}
+                <g>
+                  <circle cx="400" cy="400" r="70" fill="rgba(15, 18, 40, 0.9)" stroke="rgba(212, 168, 67, 0.25)" strokeWidth="1" />
+                  <text x="400" y="397" textAnchor="middle" dominantBaseline="middle" fill="#d4a843" fontSize="15" fontWeight="700" style={{ letterSpacing: '3px' }}>SOLARIUM</text>
+                  <text x="400" y="414" textAnchor="middle" dominantBaseline="middle" fill="rgba(212,168,67,0.6)" fontSize="8" fontWeight="400" style={{ letterSpacing: '2px' }}>· HERBS &amp; ASTROLOGY ·</text>
+                </g>
+
+                {/* Aspect lines */}
+                {aspects.map((aspect, i) => {
+                  const pos1 = getPlanetPosition(planets[aspect.planet1].house, planets[aspect.planet1].degrees, 188);
+                  const pos2 = getPlanetPosition(planets[aspect.planet2].house, planets[aspect.planet2].degrees, 188);
+                  return (
+                    <line
+                      key={i}
+                      x1={pos1.x} y1={pos1.y} x2={pos2.x} y2={pos2.y}
+                      stroke="#d4a843"
+                      strokeWidth="1.5"
+                      strokeDasharray={aspect.dotted ? "4,4" : "none"}
+                      opacity="0.5"
+                      style={{ animation: 'fadeIn 0.3s ease-out' }}
+                    />
+                  );
+                })}
+
+                {/* Planets */}
+                {Object.entries(planets).map(([planetId, pos]) => {
+                  const planet = PLANETS.find(p => p.id === planetId);
+                  const position = getPlanetPosition(pos.house, pos.degrees, 188);
+                  const isOuter = ['uranus', 'neptune', 'pluto'].includes(planetId);
+                  const r = isOuter ? 12 : 16;
+                  const glowR = isOuter ? 15 : 20;
+                  const fontSize = isOuter ? 13 : 18;
+                  return (
+                    <g key={planetId} style={{ cursor: 'grab' }} onMouseDown={(e) => handleMouseDown(planetId, e)}>
+                      <circle cx={position.x} cy={position.y} r={glowR} fill={planet.color} opacity="0.2"
+                        style={{ filter: 'blur(8px)', animation: dragging === planetId ? 'pulse 0.5s ease-in-out infinite' : 'none' }} />
+                      <circle cx={position.x} cy={position.y} r={r} fill={planet.color} stroke="#0a0e27" strokeWidth="2"
+                        style={{
+                          transition: dragging === planetId ? 'none' : 'all 0.3s ease',
+                          transform: dragging === planetId ? 'scale(1.2)' : 'scale(1)',
+                          transformOrigin: `${position.x}px ${position.y}px`
+                        }} />
+                      <text x={position.x} y={position.y} textAnchor="middle" dominantBaseline="middle"
+                        fill={planet.id === 'pluto' ? '#ffffff' : '#0a0e27'}
+                        fontSize={fontSize} fontWeight="700"
+                        style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                        {planet.symbol}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Ascendant marker — short tick at ring edge only */}
+                <g>
+                  <line x1={400 - 265} y1="400" x2={400 - 282} y2="400" stroke="#d4a843" strokeWidth="3" opacity="0.9" />
+                  <text x={400 - 297} y="400" textAnchor="middle" dominantBaseline="middle" fill="#d4a843" fontSize="15" fontWeight="700">
+                    ASC
+                  </text>
+                </g>
+
+
+                {/* House significations - OUTSIDE the zodiac ring, inside expanded viewBox */}
+                {Array.from({ length: 12 }).map((_, i) => {
+                  const angle = (180 - (i * 30 + 15)) * (Math.PI / 180);
+                  const radius = 330;
+                  const x = 400 + Math.cos(angle) * radius;
+                  const y = 400 + Math.sin(angle) * radius;
+                  const words = HOUSE_SIGNIFICATIONS[i].split(', ');
+                  return (
+                    <g key={`sig-${i}`}>
+                      {words.map((word, wordIndex) => (
+                        <text
+                          key={wordIndex}
+                          x={x}
+                          y={y + (wordIndex - words.length / 2 + 0.5) * 17}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill="#FFFFFF"
+                          fontSize="15"
+                          fontWeight="600"
+                        >
+                          {word}
+                        </text>
+                      ))}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {/* Legend sidebar */}
+            <div style={{
+              width: '280px',
+              maxHeight: 'calc(100vh - 4rem)',
+              minHeight: '400px',
+              overflowY: 'auto',
+              background: 'rgba(20, 24, 48, 0.75)',
+              border: '1px solid rgba(212, 168, 67, 0.3)',
+              borderRadius: '8px',
+              padding: '1.5rem',
+              backdropFilter: 'blur(10px)',
+              flexShrink: 0
+            }}>
+              {/* Controls */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '14px', color: '#ffffff' }}>
+                  <Settings />
+                  <span>Ascendant:</span>
+                  <select
+                    value={ascendant}
+                    onChange={(e) => setAscendant(e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(45, 53, 97, 0.9)',
+                      border: '1px solid rgba(212, 168, 67, 0.5)',
+                      color: '#ffffff',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      fontFamily: 'inherit',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {ZODIAC_SIGNS.map(sign => (
+                      <option key={sign} value={sign} style={{ background: '#1e2548' }}>{sign}</option>
+                    ))}
+                  </select>
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <span style={{ fontSize: '14px', color: '#ffffff', opacity: 0.8 }}>
+                    Zoom: {Math.round(zoom * 100)}%
+                  </span>
+                  <input
+                    type="range"
+                    min="0.4"
+                    max="2.5"
+                    step="0.05"
+                    value={zoom}
+                    onChange={e => setZoom(parseFloat(e.target.value))}
+                    style={{ width: '100%', accentColor: '#d4a843', cursor: 'pointer' }}
+                  />
+                </label>
+                <button
+                  onClick={() => setShowAspects(!showAspects)}
+                  style={{
+                    background: showAspects ? 'rgba(212, 168, 67, 0.2)' : 'rgba(255,255,255,0.08)',
+                    border: `1px solid ${showAspects ? '#d4a843' : 'rgba(255,255,255,0.25)'}`,
+                    color: '#ffffff',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease',
+                    width: '100%'
+                  }}
+                >
+                  {showAspects ? <Eye /> : <EyeOff />}
+                  {showAspects ? 'Hide' : 'Show'} Aspects
+                </button>
+              </div>
+
+              <h2 style={{
+                fontSize: '22px',
+                fontWeight: '600',
+                marginBottom: '1rem',
+                color: '#d4a843',
+                borderBottom: '1px solid rgba(212, 168, 67, 0.3)',
+                paddingBottom: '0.5rem'
+              }}>
+                Planetary Keys
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {PLANETS.map(planet => (
+                  <div key={planet.id} style={{
+                    display: 'flex',
+                    gap: '0.75rem',
+                    alignItems: 'flex-start',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '4px',
+                    borderLeft: `3px solid ${planet.color}`
+                  }}>
+                    <div style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: planet.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      color: planet.id === 'pluto' ? '#ffffff' : '#0a0e27',
+                      flexShrink: 0
+                    }}>
+                      {planet.symbol}
+                    </div>
+                    
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        marginBottom: '0.25rem',
+                        color: planet.color
+                      }}>
+                        {planet.name}
+                      </div>
+                      
+                      {planet.rules.length > 0 && (
+                        <div style={{
+                          fontSize: '15px',
+                          opacity: 0.6,
+                          marginBottom: '0.25rem',
+                          fontStyle: 'italic'
+                        }}>
+                          Rules: {planet.rules.join(', ')}
+                        </div>
+                      )}
+
+                      <div style={{
+                        fontSize: '16px',
+                        opacity: 0.8,
+                        lineHeight: '1.4'
+                      }}>
+                        {planet.meaning}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {showAspects && (
+                <>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    marginTop: '2rem',
+                    marginBottom: '1rem',
+                    color: '#d4a843',
+                    borderBottom: '1px solid rgba(212, 168, 67, 0.3)',
+                    paddingBottom: '0.5rem'
+                  }}>
+                    Active Aspects
+                  </h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {aspects.map((aspect, i) => {
+                      const p1 = PLANETS.find(p => p.id === aspect.planet1);
+                      const p2 = PLANETS.find(p => p.id === aspect.planet2);
+                      return (
+                        <div key={i} style={{
+                          fontSize: '13px',
+                          padding: '0.5rem',
+                          background: 'rgba(212, 168, 67, 0.08)',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <span style={{ color: p1.color }}>{p1.symbol}</span>
+                          <span style={{ opacity: 0.6 }}>{aspect.type}</span>
+                          <span style={{ color: p2.color }}>{p2.symbol}</span>
+                        </div>
+                      );
+                    })}
+                    {aspects.length === 0 && (
+                      <div style={{ fontSize: '13px', opacity: 0.6, fontStyle: 'italic' }}>
+                        No aspects within orb
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<AstrologyChart />, document.getElementById('root'));
+  </script>
+</body>
+</html>

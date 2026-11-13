@@ -1,0 +1,14 @@
+[
+  { "id": "1", "title": "House 1", "text": "Self, identity, appearance, how you show up in the world", "source": "Solarium chart app" },
+  { "id": "2", "title": "House 2", "text": "Values, possessions, resources, self-worth, material security", "source": "Solarium chart app" },
+  { "id": "3", "title": "House 3", "text": "Communication, learning, siblings, short trips, daily environment", "source": "Solarium chart app" },
+  { "id": "4", "title": "House 4", "text": "Home, family, roots, emotional foundation, private life", "source": "Solarium chart app" },
+  { "id": "5", "title": "House 5", "text": "Creativity, romance, children, joy, self-expression, play", "source": "Solarium chart app" },
+  { "id": "6", "title": "House 6", "text": "Health, work, daily routines, service, practical skills", "source": "Solarium chart app" },
+  { "id": "7", "title": "House 7", "text": "Partnerships, marriage, one-on-one relationships, contracts", "source": "Solarium chart app" },
+  { "id": "8", "title": "House 8", "text": "Transformation, shared resources, intimacy, death/rebirth, occult", "source": "Solarium chart app" },
+  { "id": "9", "title": "House 9", "text": "Philosophy, higher learning, long journeys, belief systems, meaning", "source": "Solarium chart app" },
+  { "id": "10", "title": "House 10", "text": "Career, reputation, public life, authority, life purpose", "source": "Solarium chart app" },
+  { "id": "11", "title": "House 11", "text": "Community, friendships, hopes, dreams, collective causes", "source": "Solarium chart app" },
+  { "id": "12", "title": "House 12", "text": "Spirituality, the unconscious, hidden enemies, solitude, endings", "source": "Solarium chart app" }
+]

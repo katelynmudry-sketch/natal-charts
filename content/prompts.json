@@ -1,0 +1,12 @@
+[
+  { "id": "sun", "title": "Sun", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "moon", "title": "Moon", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "mercury", "title": "Mercury", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "venus", "title": "Venus", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "mars", "title": "Mars", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "jupiter", "title": "Jupiter", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "saturn", "title": "Saturn", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "uranus", "title": "Uranus", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "neptune", "title": "Neptune", "text": "TODO: Katelyn to write", "source": "" },
+  { "id": "pluto", "title": "Pluto", "text": "TODO: Katelyn to write", "source": "" }
+]
