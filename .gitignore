@@ -4,3 +4,4 @@
 *.xlsx
 dev.log
 *.tsbuildinfo
+out
